@@ -1,6 +1,6 @@
 <template>
   <div class="top-container">
-    <span class="username">用户名：{{this.$store.getters.getUser}}</span>
+    <span class="username">用户名：{{this.$store.getters.getUser}} ({{ identity }})</span>
     <span @click="layout" class="layout">退出登录</span>
   </div>
 </template>
@@ -15,6 +15,11 @@ export default {
       show: false,
     };
   },
+  computed: {
+    identity() {
+      return this.$store.getters.getIdentity ? "管理员" : "普通用户";
+    },
+  },
   methods: {
     layout() {
       this.$store.commit("clearUser");
@@ -27,7 +32,7 @@ export default {
 <style scoped>
 .top-container {
   width: 100%;
-  height: 60px;
+  height: 80px;
   background-color: #f9f9f9;
 }
 .username {

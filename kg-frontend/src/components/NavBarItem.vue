@@ -28,5 +28,6 @@ export default {
 <style scoped>
 .active {
   background-color: #e07b60;
+  color: aliceblue;
 }
 </style>

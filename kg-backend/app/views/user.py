@@ -44,10 +44,10 @@ def login(request):
             encry = hashlib.md5()
             encry.update(password.encode())
             md5_pwd = encry.hexdigest()  # 密码加密
-            username=User.objects.filter(password=md5_pwd).first().username
-            if username:
+            user = User.objects.filter(email=email, password=md5_pwd).first()
+            if user:
                 token = create_token({"email": email})
-                return json_response(200, '登录成功', {"username": username, "token": token})
+                return json_response(200, '登录成功', {"username": user.username, "role": user.role, "token": token})
             else:
                 return json_response(204, '密码错误')
         else:

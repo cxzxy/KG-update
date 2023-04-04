@@ -27,6 +27,11 @@ export default {
       email: "",
       password: "",
       username: "",
+      route: {
+        path: "management",
+        component: () => import("views/main/management/Management.vue")
+      }
+        
     };
   },
   methods: {
@@ -35,8 +40,11 @@ export default {
       if (res.code == 200) {
         this.$store.commit("updateUser", res.data);
         this.$message.success("登录成功");
+        if (res.data.role == 1){
+            this.$router.addRoute("Main",this.route);
+        }
         this.$router.push("/main/upload");
-      }else this.$message.error(res.msg);
+      } else this.$message.error(res.msg);
     },
     async register() {
       const res = await register({

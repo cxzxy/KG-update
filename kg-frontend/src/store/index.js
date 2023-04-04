@@ -10,6 +10,9 @@ const state = {
 const getters = {
     getUser(state) {
         return state.userinfo.username
+    },
+    getIdentity(state) {
+        return state.userinfo.role
     }
 }
 //实现方法
@@ -22,9 +25,7 @@ const mutations = {
     },
     // 清除用户信息
     clearUser(state) {
-        // 1. vuex做清除，使得有响应式
-        state.user = {}
-        // 2. localStorage做持久清除
+        state.userinfo = {}
         localStorage.removeItem('USER')
     }
 }
