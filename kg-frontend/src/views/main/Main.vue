@@ -1,6 +1,6 @@
 <template>
   <div>
-    <top-bar></top-bar>
+    <top-bar class="topbar"></top-bar>
     <index></index>
   </div>
 </template>
@@ -21,4 +21,11 @@ export default {
 };
 </script>
 <style scoped>
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+}
 </style>

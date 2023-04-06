@@ -25,7 +25,7 @@ export default {
   margin: 80px 100px 0px 300px;
   margin-top: 80px;
   margin-left: 300px;
-  height: 690px;
+  height: 665px;
   overflow-y: scroll;
 }
 </style>

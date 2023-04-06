@@ -84,10 +84,7 @@ def get_success_files(request):
             file_dict['field'] = file.field
             file_dict['title'] = file.title
             file_dict['create_time'] = file.create_time
-            file_dict['update_time'] = file.update_time
-            file_dict['status'] = file.status
-            file_dict['content'] = file.content
-            file_dict['author'] = file.auditor.username
+            # file_dict['update_time'] = file.update_time
             file_list.append(file_dict)
         return json_response(200, '请求成功', file_list)
     else:

@@ -9,8 +9,8 @@ export function request(config) {
     // 后端验证token，有token(未登录)去验证，没token直接越过
     //请求拦截器
     instance.interceptors.request.use(config => {
-        const token = localStorage.accessToken
-        if (token) config.headers.token = token
+        const userinfo = localStorage.getItem('USER')
+        if (userinfo) config.headers.Authorization = JSON.parse(userinfo).token
         return config
     })
 
