@@ -55,16 +55,16 @@ export default {
       value: "",
       options: [
         {
-          value: "文学",
+          value: "literature",
           label: "文学",
         },
         {
-          value: "生物学",
+          value: "biology",
           label: "生物学",
         },
         {
-          value: "数据科学",
-          label: "数据科学",
+          value: "medicine",
+          label: "医学",
         },
       ],
       fileList: [],

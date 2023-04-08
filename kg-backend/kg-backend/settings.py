@@ -104,9 +104,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'kg-backend.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
+import mongoengine
 
 DATABASES = {
     'default': {
@@ -116,11 +116,16 @@ DATABASES = {
         'PASSWORD': '123456',
         'HOST': '127.0.0.1',
         'POST': 3306,
+    },
+    'KG': {
+        'ENGINE': None,
     }
 }
 
+import mongoengine
+conn = mongoengine.connect("KG")
 
-# Password validation
+
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [

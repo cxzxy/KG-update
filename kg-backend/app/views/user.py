@@ -3,6 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from app.models import User, Permission, UserPermission
 import hashlib
 from app.utils.jwtAuth import create_token
+from app.models import Graph
 
 
 # 用户注册
@@ -27,6 +28,7 @@ def register(request):
         for permission in permission_list:
             user_permission = UserPermission(user=user_id, permission_id=permission[0])
             user_permission.save()
+        Graph.objects.create(username=username, graph={})
         return json_response(200, '创建成功')
     else:
         return json_response(203, '无效的请求方法')

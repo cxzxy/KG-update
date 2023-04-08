@@ -14,8 +14,13 @@ export function request(config) {
         return config
     })
 
-    // //响应拦截器
+    //响应拦截器
     instance.interceptors.response.use(res => {
+        if(res.data.code == 210) {
+            localStorage.removeItem('USER')
+            $this.message.error('登录过期，请重新登录')
+            window.location.href = '/login'
+        }
         return res.data
     }, err => {
         console.log(err)

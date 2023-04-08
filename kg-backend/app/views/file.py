@@ -1,6 +1,6 @@
 from django.views.decorators.csrf import csrf_exempt
 from app.utils.jsonResponse import json_response
-from app.models import Document, User
+from app.models import Document, User, DocumentField, Settings
 import time
 from datetime import datetime
 from django.http import QueryDict
@@ -12,17 +12,18 @@ def upload_file(request):
     if request.method == 'POST':
         title = request.POST.get('title')
         field = request.POST.get('field')
-        if field not in ['文学', '生物学', '数据科学']:
-            return json_response(204, '该文献领域不存在')
+        Field = DocumentField.objects.filter(field_name=field).first()
+        if Field is None:
+            return json_response(205, '该领域不存在')
+        status=Settings.objects.filter(name="auto_examine").first().isOpened
         content = request.POST.get('content')
         create_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # 获取当前时间戳
-        print(create_time)
         update_time = create_time
         user = User.objects.filter(email=request.user_info).first()
         user_role = user.role
         userid = user.user_id
         user_id = User.objects.get(user_id=userid)
-        file = Document(field=field, create_time=create_time, update_time=update_time, status=user_role, title=title,
+        file = Document(field=Field, create_time=create_time, update_time=update_time, status=status, title=title,
                         content=content, user=user_id)
         file.save()
         return json_response(200, '上传成功')
@@ -41,10 +42,8 @@ def search_file_list(requset):
             file_dict = {}  # 必须放在循环内部
             file_dict['document_id'] = file['document_id']
             file_dict['title'] = file['title']
-            file_dict['field'] = file['field']
-            print(file_dict)
+            file_dict['field'] = DocumentField.objects.filter(id=file['field']).first().field
             files.append(file_dict)
-            print(files)
         data = {'data': files}
         return json_response(200, '请求成功', data)
     else:
@@ -59,7 +58,7 @@ def get_file_detail(request):
         document = Document.objects.filter(document_id=document_id).first()
         file_dict = {}
         file_dict['document_id'] = document.document_id
-        file_dict['field'] = document.field
+        file_dict['field'] = DocumentField.objects.filter(id=document.field).first().field
         file_dict['title'] = document.title
         file_dict['create_time'] = document.create_time
         file_dict['update_time'] = document.update_time
@@ -81,7 +80,7 @@ def get_success_files(request):
         for file in files:
             file_dict = {}
             file_dict['document_id'] = file.document_id
-            file_dict['field'] = file.field
+            file_dict['field'] = file.field.field_name
             file_dict['title'] = file.title
             file_dict['create_time'] = file.create_time
             # file_dict['update_time'] = file.update_time
@@ -92,38 +91,38 @@ def get_success_files(request):
 
 
 # 获取未通过审核的文献列表，无权限控制
-@csrf_exempt
-def get_failure_files(request):
-    if request.method == 'GET':
-        user_id = User.objects.filter(email=request.user_info).first().user_id
-        files = Document.objects.select_related('auditor').all().filter(user=user_id, status=2)
-        file_list = []
-        for file in files:
-            file_dict = {}
-            file_dict['document_id'] = file.document_id
-            file_dict['field'] = file.field
-            file_dict['title'] = file.title
-            file_dict['create_time'] = file.create_time
-            file_dict['update_time'] = file.update_time
-            file_dict['status'] = file.status
-            file_dict['content'] = file.content
-            file_dict['reason'] = file.reason
-            file_dict['author'] = file.auditor.username
-            file_list.append(file_dict)
-        return json_response(200, '请求成功', file_list)
-    else:
-        return json_response(203, '请求方式错误')
+# @csrf_exempt
+# def get_failure_files(request):
+#     if request.method == 'GET':
+#         user_id = User.objects.filter(email=request.user_info).first().user_id
+#         files = Document.objects.select_related('auditor').all().filter(user=user_id, status=2)
+#         file_list = []
+#         for file in files:
+#             file_dict = {}
+#             file_dict['document_id'] = file.document_id
+#             file_dict['field'] = file.field
+#             file_dict['title'] = file.title
+#             file_dict['create_time'] = file.create_time
+#             file_dict['update_time'] = file.update_time
+#             file_dict['status'] = file.status
+#             file_dict['content'] = file.content
+#             file_dict['reason'] = file.reason
+#             file_dict['author'] = file.auditor.username
+#             file_list.append(file_dict)
+#         return json_response(200, '请求成功', file_list)
+#     else:
+#         return json_response(203, '请求方式错误')
 
 
 # 获取上传过的文献列表，无权限控制
-@csrf_exempt
-def get_uploaded_files(request):
-    if request.method == 'GET':
-        user_id = User.objects.filter(email=request.user_info).first().user_id
-        files = Document.objects.filter(user=user_id).values()
-        return json_response(200, '请求成功', list(files))
-    else:
-        return json_response(203, '请求方式错误')
+# @csrf_exempt
+# def get_uploaded_files(request):
+#     if request.method == 'GET':
+#         user_id = User.objects.filter(email=request.user_info).first().user_id
+#         files = Document.objects.filter(user=user_id).values()
+#         return json_response(200, '请求成功', list(files))
+#     else:
+#         return json_response(203, '请求方式错误')
 
 
 # 获取未审核的文献列表，管理员专属
@@ -163,29 +162,29 @@ def examine_file(request):
 
 
 # 获取已审核成功的文献列表 管理员专属
-@csrf_exempt
-def get_file_list(request):
-    if request.method == 'GET':
-        user = User.objects.filter(email=request.user_info).first()
-        if user.role == 1:
-            files = Document.objects.select_related('auditor').all().filter(status=1)
-            file_list = []
-            for file in files:
-                file_dict = {}
-                file_dict['document_id'] = file.document_id
-                file_dict['field'] = file.field
-                file_dict['title'] = file.title
-                file_dict['create_time'] = file.create_time
-                file_dict['update_time'] = file.update_time
-                file_dict['status'] = file.status
-                file_dict['content'] = file.content
-                file_dict['author'] = file.auditor.username
-                file_list.append(file_dict)
-            return json_response(200, '请求成功', file_list)
-        else:
-            return json_response(206, '无权限该操作')
-    else:
-        return json_response(203, '请求方式错误')
+# @csrf_exempt
+# def get_file_list(request):
+#     if request.method == 'GET':
+#         user = User.objects.filter(email=request.user_info).first()
+#         if user.role == 1:
+#             files = Document.objects.select_related('auditor').all().filter(status=1)
+#             file_list = []
+#             for file in files:
+#                 file_dict = {}
+#                 file_dict['document_id'] = file.document_id
+#                 file_dict['field'] = file.field
+#                 file_dict['title'] = file.title
+#                 file_dict['create_time'] = file.create_time
+#                 file_dict['update_time'] = file.update_time
+#                 file_dict['status'] = file.status
+#                 file_dict['content'] = file.content
+#                 file_dict['author'] = file.auditor.username
+#                 file_list.append(file_dict)
+#             return json_response(200, '请求成功', file_list)
+#         else:
+#             return json_response(206, '无权限该操作')
+#     else:
+#         return json_response(203, '请求方式错误')
 
 
 # 修改文献，管理员专属
@@ -200,7 +199,7 @@ def change_file(request):
                 return json_response(207, '该文献未审核成功')
             file = Document.objects.filter(document_id=data.get('document_id')).first()
             file.title = data.get('title')
-            if data.get('field') not in ['文学', '生物学', '数据科学']:
+            if DocumentField.objects.filter(field_name=data.get('field')).first() is None:
                 return json_response(208, '该领域不存在')
             file.field = data.get('field')
             file.update_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
