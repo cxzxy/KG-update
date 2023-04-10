@@ -7,7 +7,7 @@ from app.utils.jsonResponse import json_response
 class TokenMiddleware(MiddlewareMixin):
     def process_request(self, request):
         url = request.get_full_path()
-        white_list = ['/user/login', '/user/register']
+        white_list = ['/user/login']
         if url not in white_list:
             token = request.headers.get('Authorization')
             if token:
