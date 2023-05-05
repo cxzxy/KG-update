@@ -31,20 +31,30 @@ def upload_file(request):
         return json_response(203, '请求方式错误')
 
 
-# 搜索文献，有权限控制
+# 搜索文献
 @csrf_exempt
-def search_file_list(requset):
-    if requset.method == 'GET':
-        title = requset.GET.get('title')
-        file_list = Document.objects.filter(title__contains=title).values()
+def search_file_list(request):
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        page = int(request.POST.get('currentPage'))
+        page_size = int(request.POST.get('pageSize'))
+
+        email=request.user_info
+        user_id = User.objects.filter(email=email).first().user_id
+        # 模糊查询
+        file_list=Document.objects.filter(title__contains=title,user=user_id).values()
+        start = (page - 1) * page_size
+        end = page * page_size
+        file_list = file_list[start:end]
+        total = len(Document.objects.filter(title__contains=title, user=user_id))
         files = []
         for file in file_list:
             file_dict = {}  # 必须放在循环内部
             file_dict['document_id'] = file['document_id']
             file_dict['title'] = file['title']
-            file_dict['field'] = DocumentField.objects.filter(id=file['field']).first().field
+            file_dict['field'] = DocumentField.objects.filter(id=file['field_id']).first().field_name
             files.append(file_dict)
-        data = {'data': files}
+        data = {'data': files, 'total': total}
         return json_response(200, '请求成功', data)
     else:
         return json_response(203, '请求方式错误')
@@ -58,13 +68,17 @@ def get_file_detail(request):
         document = Document.objects.filter(document_id=document_id).first()
         file_dict = {}
         file_dict['document_id'] = document.document_id
-        file_dict['field'] = DocumentField.objects.filter(id=document.field).first().field
+        file_dict['field'] = DocumentField.objects.filter(id=document.field_id).first().field_name
         file_dict['title'] = document.title
         file_dict['create_time'] = document.create_time
         file_dict['update_time'] = document.update_time
         file_dict['status'] = document.status
         file_dict['content'] = document.content
         file_dict['author'] = document.user.username
+        if document.auditor is not None:
+            file_dict['auditor'] = document.auditor.username
+        else:
+            file_dict['auditor'] = "自动审核"
         return json_response(200, '请求成功', file_dict)
     else:
         return json_response(203, '请求方式错误')
@@ -73,9 +87,16 @@ def get_file_detail(request):
 # 获取已通过审核的文献列表，无权限控制
 @csrf_exempt
 def get_success_files(request):
-    if request.method == 'GET':
+    if request.method == 'POST':
         user_id = User.objects.filter(email=request.user_info).first().user_id
-        files = Document.objects.select_related('auditor').all().filter(user=user_id, status=1)
+        files = Document.objects.select_related('auditor').all().filter(user=user_id, status=1).order_by('-create_time')
+        # 设置分页
+        total=files.count()
+        page = int(request.POST.get('currentpage'))
+        page_size = int(request.POST.get('pageSize'))
+        start = (page - 1) * page_size
+        end = page * page_size
+        files = files[start:end]
         file_list = []
         for file in files:
             file_dict = {}
@@ -85,7 +106,8 @@ def get_success_files(request):
             file_dict['create_time'] = file.create_time
             # file_dict['update_time'] = file.update_time
             file_list.append(file_dict)
-        return json_response(200, '请求成功', file_list)
+        data = {'data': file_list, 'total': total}
+        return json_response(200, '请求成功', data)
     else:
         return json_response(203, '请求方式错误')
 
@@ -128,11 +150,27 @@ def get_success_files(request):
 # 获取未审核的文献列表，管理员专属
 @csrf_exempt
 def get_unaudited_files(request):
-    if request.method == 'GET':
+    if request.method == 'POST':
         user = User.objects.filter(email=request.user_info).first()
         if user.role == 1:
-            files = Document.objects.filter(status=0).values()
-            return json_response(200, '请求成功', list(files))
+            files = Document.objects.filter(status=0).values().order_by('-create_time')
+            total = files.count()
+            page = int(request.POST.get('currentpage'))
+            page_size = int(request.POST.get('pageSize'))
+            start = (page - 1) * page_size
+            end = page * page_size
+            files = files[start:end]
+            file_list = []
+            for file in files:
+                file_dict = {}
+                file_dict['document_id'] = file['document_id']
+                file_dict['title'] = file['title']
+                file_dict['field'] = DocumentField.objects.filter(id=file['field_id']).first().field_name
+                file_dict['create_time'] = file['create_time']
+                file_list.append(file_dict)
+            # print(files)
+            data={'data': file_list, 'total': total}
+            return json_response(200, '请求成功', data)
         else:
             return json_response(206, '无权限该操作')
     else:
@@ -142,7 +180,7 @@ def get_unaudited_files(request):
 # 审核文献，管理员专属
 @csrf_exempt
 def examine_file(request):
-    if request.method == 'PUT':
+    if request.method == 'POST':
         user = User.objects.filter(email=request.user_info).first()
         if user.role == 1:
             data = QueryDict(request.body)

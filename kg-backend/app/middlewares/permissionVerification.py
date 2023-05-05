@@ -10,7 +10,7 @@ class PermissionMiddleware(MiddlewareMixin):
         # 权限控制开启了
         if settings.isOpened == 0:
             url = request.get_full_path()
-            black_list = ['/file/uploadFile', '/file/searchFileList', '/answer/getAnswer', '/graph/getGraph']
+            black_list = ['/file/uploadFile', '/answer/getAnswer', '/graph/getGraph']
             if url in black_list:  # 该接口需进行权限验证
                 email = request.user_info
                 permission_name = url.split('/')[2]

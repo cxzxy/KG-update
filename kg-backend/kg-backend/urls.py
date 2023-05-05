@@ -1,5 +1,5 @@
 from django.urls import path
-from app.views import user, file, permission, graph, answer
+from app.views import user, file, permission, graph, answer, settings
 
 urlpatterns = [
     path(r'user/register', user.register),
@@ -22,4 +22,6 @@ urlpatterns = [
     path(r'answer/getAnswer', answer.get_answer),
     path(r'answer/getAnswerList', answer.get_answer_list),
     path(r'answer/deleteAnswer', answer.delete_answer),
+    path(r'settings/getSettings', settings.get_settings),
+    path(r'settings/updateSettings', settings.update_settings),
 ]

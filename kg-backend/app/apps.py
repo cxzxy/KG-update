@@ -16,7 +16,6 @@ def init_account(sender, **kwargs):
         User.objects.create(username='admin', password=md5_pwd, email="admin@qq.com", role=1)
         # 创建权限
         Permission.objects.create(permission_name="uploadFile")
-        Permission.objects.create(permission_name="searchFileList")
         Permission.objects.create(permission_name="getAnswer")
         Permission.objects.create(permission_name="getGraph")
         # 创建设置
@@ -27,7 +26,7 @@ def init_account(sender, **kwargs):
         DocumentField.objects.create(field_name="biology")
         DocumentField.objects.create(field_name="medicine")
         # 创建管理员图谱
-        Graph.objects.create(username='admin', graph={})
+        Graph.objects.create(username='admin', graph={"literature": {}, "biology": {}, "medicine": {}})
 
 
 class AppConfig(AppConfig):

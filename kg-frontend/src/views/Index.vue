@@ -2,7 +2,9 @@
   <div>
     <nav-bar></nav-bar>
     <div class="main">
+      <keep-alive>
         <router-view></router-view>
+      </keep-alive>
     </div>
   </div>
 </template>
@@ -21,11 +23,11 @@ export default {
 </script>
 <style scoped>
 .main {
-/* 上，右，下，左 */
-  margin: 80px 100px 0px 300px;
+  /* 上，右，下，左 */
+  margin: 80px 100px 0px 200px;
   margin-top: 80px;
-  margin-left: 300px;
+  margin-left: 230px;
   height: 665px;
-  overflow-y: scroll;
+  /* overflow-y: scroll; */
 }
 </style>

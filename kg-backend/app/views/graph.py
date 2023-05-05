@@ -9,8 +9,9 @@ def get_graph_list(request):
     if request.method == 'GET':
         username = User.objects.filter(email=request.user_info).first().username
         graph = Graph.objects.filter(username=username).first()
-        if graph:
-            graph = graph.graph
+        field=request.GET.get('field')
+        if graph.graph[field]:
+            graph = graph.graph[field]
             Nodes = []
             Edges = []
             for node in graph['Vertices']:

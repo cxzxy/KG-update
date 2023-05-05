@@ -12,7 +12,7 @@ def get_answer(request):
         document_id = request.POST.get('document_id')
         question = request.POST.get('question')
         document = Document.objects.filter(document_id=document_id).first()
-        field = DocumentField.objects.filter(id=document.field).first()
+        field = DocumentField.objects.filter(id=document.field.id).first().field_name
         title = document.title
         summary = document.content[:20]
         # 临时答案

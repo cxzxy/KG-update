@@ -6,16 +6,24 @@ import json
 
 @csrf_exempt
 def get_permission_list(request):
-    if request.method == 'GET':
+    if request.method == 'POST':
         user = User.objects.filter(email=request.user_info).first()
         if user.role == 1:
             users = User.objects.all().filter(role=0)
+            # 设置分页
+            total = users.count()
+            page = int(request.POST.get('currentpage'))
+            page_size = int(request.POST.get('pageSize'))
+            start = (page - 1) * page_size
+            end = page * page_size
+            users = users[start:end]
             user_list = []
             for user in users:
                 user_dict = {}
                 user_dict['user_id'] = user.user_id
                 user_dict['username'] = user.username
                 user_dict['email'] = user.email
+                user_dict['role']=user.role
                 user_dict['permission'] = []
                 for permission in user.userpermission_set.all():
                     permission_dict = {}
@@ -24,7 +32,8 @@ def get_permission_list(request):
                     permission_dict['is_allowed'] = permission.is_allowed
                     user_dict['permission'].append(permission_dict)
                 user_list.append(user_dict)
-            return json_response(200, '请求成功', user_list)
+            data = {"total": total, "user_list": user_list}
+            return json_response(200, '请求成功', data)
         else:
             return json_response(206, '无权限该操作')
     else:

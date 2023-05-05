@@ -28,7 +28,7 @@ def register(request):
         for permission in permission_list:
             user_permission = UserPermission(user=user_id, permission_id=permission[0])
             user_permission.save()
-        Graph.objects.create(username=username, graph={})
+        Graph.objects.create(username=username, graph={"literature": {}, "biology": {}, "medicine": {}})
         return json_response(200, '创建成功')
     else:
         return json_response(203, '无效的请求方法')
