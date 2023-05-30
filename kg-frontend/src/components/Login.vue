@@ -2,8 +2,6 @@
   <div class="body">
     <div class="fixed">
       <div class="form-demo">
-        <!-- 旋转开关 -->
-
         <input type="checkbox" style="display: none" id="change" @click="_switch"/>
         <label for="change">&lt;&lt;</label>
 
